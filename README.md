@@ -1,2 +1,2 @@
-# BoilerMake8
+# BoilerMake VIII
 Entry for BoilerMake VIII
