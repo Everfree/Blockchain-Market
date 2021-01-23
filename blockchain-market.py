@@ -72,6 +72,17 @@ compiled_sol = compile_standard({
                    return quantitySold;
                 }
 
+                function getBalance() view public returns (uint) {
+                    require(msg.sender == owner, "Only the owner may check this contract's balance.");
+                    return address(this).balance;
+                }
+
+                function transferETH(uint amount) public {
+                    require(msg.sender == owner, "Only the owner may transfer funds.");
+                    require(amount <= address(this).balance, "The requested amount exceeds available funds.");
+                    address(msg.sender).transfer(amount);
+                }
+
                 }
                '''
          }
