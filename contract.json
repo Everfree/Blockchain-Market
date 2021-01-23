@@ -1,0 +1,21 @@
+{
+  "language": "Solidity",
+  "sources": {
+   "SaleListing.sol": {
+       "urls":
+       [
+         "SaleListing.sol"
+       ]
+   }
+  },
+  "settings": {
+       "outputSelection": {
+           "*": {
+               "*": [
+                   "metadata", "evm.bytecode"
+                   , "evm.bytecode.sourceMap"
+               ]
+           }
+       }
+   }
+  }

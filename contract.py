@@ -15,18 +15,31 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# This is the prject's main .py file
+# This file contains the contract's Solidity code and code to add it
+# to the private blockchain
 
 # imports
-import secrets
 import json
 from web3 import Web3
+from solc import compile_standard
 
-# IPC Provider
-gNode = Web3(Web3.IPCProvider('/Users/tkrull/Library/Ethereum/geth.ipc'))
 
-# check connection
-print(gNode.isConnected())
+# compile the contract defined using Solidity
+# Input:
+#   - fn: the name of the json file containing the contract definition
+# Returns: compiled Solidity code
+def compile_contract(fn):
 
-# get info on latest block
-print(gNode.eth.get_block('latest'))
+    code = ""
+
+    with open(fn) as file:
+        code = json.load(file)
+
+        print(code)
+
+    return compile_standard(code, allow_paths=
+                            "/Users/tkrull/Documents/SourceTree/BoilerMakeVIII"
+                            )
+
+
+print(compile_contract("contract.json"))
