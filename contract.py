@@ -15,8 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# This file contains the contract's Solidity code and code to add it
-# to the private blockchain
+# This file contains the code to compile a contract's .sol file and create
+# a Web3 contract object
+
 
 # imports
 import json
@@ -27,19 +28,25 @@ from solc import compile_standard
 # compile the contract defined using Solidity
 # Input:
 #   - fn: the name of the json file containing the contract definition
-# Returns: compiled Solidity code
+# Returns: a contract object
 def compile_contract(fn):
 
     code = ""
 
+    # open the json file and read it in
     with open(fn) as file:
         code = json.load(file)
 
-        print(code)
+    # compile the Solidity code
+    comp_sol = compile_standard(code, allow_paths="/Users/tkrull/\
+                                Documents/SourceTree/BoilerMakeVIII")
 
-    return compile_standard(code, allow_paths=
-                            "/Users/tkrull/Documents/SourceTree/BoilerMakeVIII"
-                            )
+    # get the bytecode for the compiled Solidity code
+    bytecode = comp_sol['contracts']['Greeter.sol']['Greeter']
+    ['evm']['bytecode']['object']
 
+    # get the bytecode for the compiled Solidity code
+    abi = json.loads(comp_sol['contracts']['Greeter.sol']
+                             ['Greeter']['metadata']['output']['abi'])
 
-print(compile_contract("contract.json"))
+    return Web3.eth.contract(abi=abi, bytecode=bytecode)

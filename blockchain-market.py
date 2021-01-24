@@ -18,6 +18,7 @@
 # This is the prject's main .py file
 
 # imports
+from contract.py import compile_contract
 import secrets
 import json
 from web3 import Web3
@@ -33,7 +34,7 @@ MIN_ACCTS = 16      # minimum number of accounts to have active
 #   - start: int to start indexing users at
 #   - num: number of accounts to generate
 # Outputs: user keyfiles
-def populateUsers(start, num):
+def populate_users(start, num):
     # create some hex values to use to generate account keys/addresses
     ex_entropy = [str(secrets.token_hex(HEX_DIGITS)) for
                   i in range(start, num)]
@@ -51,8 +52,15 @@ def populateUsers(start, num):
             kf.write(json.dumps(encrypted))
 
 
+# sets the default account to use for chain transactions
+# Input:
+#   - acct_index: the index of the account in X.eth.accounts to use
+def set_default_account(acct_index):
+    gNode.eth.defaultAccount = gNode.eth.accounts[acct_index]
+
+
 # prints info about the current state of the chain
-def printInfo():
+def print_info():
     # output if connected to the geth node
     print("Node Connected: " + str(gNode.isConnected()) + "\n")
 
@@ -73,6 +81,16 @@ def printInfo():
 gNode = Web3(Web3.IPCProvider('/Users/tkrull/Library/Ethereum/geth.ipc'))
 
 if (len(gNode.eth.accounts) < MIN_ACCTS):
-    populateUsers(len(gNode.eth.accounts), MIN_ACCTS)
+    populate_users(len(gNode.eth.accounts), MIN_ACCTS)
 
-printInfo()
+# set the first account as the default account
+set_default_account(0)
+
+# get the compiled contract
+SaleListing = compile_contract('SaleListing.sol')
+
+# Submit the transaction that deploys the contract
+trans_hash = SaleListing.constructor("testaddress", 5,
+                                     "Test Description").transact()
+
+print_info()
