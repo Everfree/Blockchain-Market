@@ -51,7 +51,7 @@ contract SaleListing {
     }
 
     function getPrice() public view returns (uint) {
-        return price
+        return price;
     }
 
     function describe() public view returns (string memory) {

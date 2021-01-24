@@ -18,15 +18,17 @@
 # This is the prject's main .py file
 
 # imports
-from contract.py import compile_contract
 import secrets
 import json
+from os import getcwd
 from web3 import Web3
 from eth_account import Account
+from solc import compile_standard
 
 # constants
 HEX_DIGITS = 32     # number of digits for random hex nums
 MIN_ACCTS = 16      # minimum number of accounts to have active
+START_BAL = 50      # amount to start accounts off with
 
 
 # creates dummy users and adds their accounts to the blockchain
@@ -59,6 +61,59 @@ def set_default_account(acct_index):
     gNode.eth.defaultAccount = gNode.eth.accounts[acct_index]
 
 
+# simulates activity on the blockchain
+def simulate():
+    gNode.geth.miner.start(4)
+
+    seed_accounts = False
+    for account in gNode.eth.accounts:
+        if Web3.fromWei(gNode.eth.getBalance(account), 'ether') < START_BAL:
+            seed_accounts = True
+            break
+    if seed_accounts:
+        while(Web3.fromWei(gNode.eth.getBalance(gNode.eth.accounts[0]),
+              'ether') < (len(gNode.eth.accounts) * START_BAL)):
+            # do nothing until default account has enough to seed others
+            continue
+
+    gNode.geth.miner.stop()
+
+    gNode.geth.personal.unlock_account(gNode.eth.accounts[0], 'user0pass', 0)
+
+    # seed other accounts
+    for i in range(1, len(gNode.eth.accounts)):
+        gNode.eth.sendTransaction({'to': gNode.eth.accounts[i],
+                                  'value': START_BAL})
+
+    # with open('commands.txt', 'r') as fin:
+    #     for command in fin:
+    #         command = command.split()
+
+
+# compile the contract defined using Solidity
+# Input:
+#   - fn: the name of the json file containing the contract definition
+# Returns: a contract object
+def compile_contract(fn):
+    code = ""
+
+    # open the json file and read it in
+    with open(fn, 'r') as file:
+        code = json.load(file)
+
+    # compile the Solidity code
+    comp_sol = compile_standard(code,
+                                allow_paths=getcwd())
+
+    # get the bytecode for the compiled Solidity code
+    bytecode = comp_sol['contracts']['SaleListing.sol']['SaleListing']['evm']['bytecode']['object']
+
+    # get the bytecode for the compiled Solidity code
+    abi = json.loads(comp_sol['contracts']['SaleListing.sol']['SaleListing']['metadata'])['output']['abi']
+
+    return gNode.eth.contract(abi=abi, bytecode=bytecode)
+
+
 # prints info about the current state of the chain
 def print_info():
     # output if connected to the geth node
@@ -72,7 +127,11 @@ def print_info():
     # print user addresses
     print("Current Account Addresses:")
     for acct in gNode.eth.accounts:
-        print(acct)
+        output = 'address: ' + acct + '\tbalance:' + str(Web3.fromWei(
+                                                        gNode.eth.getBalance(
+                                                         gNode.eth.accounts[0]
+                                                         ), 'ether'))
+        print(output)
     # print a blank line
     print()
 
@@ -87,10 +146,10 @@ if (len(gNode.eth.accounts) < MIN_ACCTS):
 set_default_account(0)
 
 # get the compiled contract
-SaleListing = compile_contract('SaleListing.sol')
+SaleListing = compile_contract('contract.json')
 
-# Submit the transaction that deploys the contract
-trans_hash = SaleListing.constructor("testaddress", 5,
-                                     "Test Description").transact()
-
+# # Submit the transaction that deploys the contract
+# trans_hash = SaleListing.constructor("testaddress", 5,
+#                                      "Test Description").transact()
+simulate()
 print_info()
