@@ -50,6 +50,10 @@ contract SaleListing {
         return fileAddr;
     }
 
+    function getPrice() public view returns (uint) {
+        return price
+    }
+
     function describe() public view returns (string memory) {
         return description;
     }
