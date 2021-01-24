@@ -1,5 +1,5 @@
 
-These scritps are meant to setup the private blockchain locally. They were written for use on macOS. Remember to give them permission to execute by running "chmod +x [script-filename]"
+These scripts are meant to setup the private blockchain locally. They were written for use on macOS. Remember to give them permission to execute by running "chmod +x [script-filename]"
 
 *****IMPORTANT*****
 These scripts require the geth (Go Ethereum) executable be located 1 level up in the directory. Geth can be downloaded here: https://geth.ethereum.org/downloads/
