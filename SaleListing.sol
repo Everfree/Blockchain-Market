@@ -19,7 +19,8 @@ contract SaleListing {
     }
 
     function purchase() public payable returns (string memory) {
-        require(msg.value >= price, "You must pay an amount equal to or greater than the current price in ETH to purchase.");
+        require(msg.value >= price,
+        "You must pay an amount equal to or greater than the current price in ETH to purchase.");
 
         if (msg.value > price) {
             price = msg.value;
@@ -46,6 +47,17 @@ contract SaleListing {
         require(msg.sender == owner, "Only the owner may transfer funds.");
         require(amount <= address(this).balance, "The requested amount exceeds available funds.");
         address(msg.sender).transfer(amount);
+    }
+
+    function updatePrice(uint newPrice) public {
+        require(msg.sender == owner, "Only the owner may update the price.");
+        require(quantitySold == 0, "Can only change price if there are 0 sales");
+        price = newPrice;
+    }
+
+    function takeOffMarket() public {
+        require(msg.sender == owner, "Only the owner may take the listing off the market.");
+        selfdestruct(address(uint160(owner)));
     }
 
 }
