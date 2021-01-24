@@ -46,21 +46,26 @@ output = ''
 for i in range(int(sys.argv[1])):
     command = random.choice(COMMANDS)
     if command == 'purchase':
-        output += command + ', ' + str(random.randint(MIN, MAX)) + '\n'
+        output += command + ', ' + str(random.randint(MIN, MAX)) +\
+            ', ' + str(random.randrange(1, int(sys.argv[2]))) + '\n'
     elif command == 'getPrice':
-        output += command + '\n'
+        output += command + ', ' +\
+            str(random.randrange(int(sys.argv[2]))) + '\n'
     elif command == 'describe':
-        output += command + '\n'
+        output += command + ', ' +\
+            str(random.randrange(int(sys.argv[2]))) + '\n'
     elif command == 'timesBought':
-        output += command + '\n'
+        output += command + ', ' +\
+            str(random.randrange(int(sys.argv[2]))) + '\n'
     elif command == 'getBalance':
-        output += command + '\n'
+        output += command + ', ' +\
+            str(0) + '\n'
     elif command == 'transferETH':
-        output += command + ', ' + str(random.randint(MIN, MAX)) + '\n'
-    elif command == 'updatePrice':
-        output += command + ', ' + str(random.randint(MIN, MAX)) + '\n'
+        output += command + ', ' + str(random.randint(MIN, MAX)) +\
+            ', ' + str(0) + '\n'
     elif command == 'takeOffMarket':
-        output += command + '\n'
+        output += command + ', ' +\
+            str(0) + '\n'
     elif command == 'send':
         sender = random.randrange(int(sys.argv[2]))
         reciever = random.randrange(int(sys.argv[2]))
