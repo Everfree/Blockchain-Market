@@ -21,6 +21,31 @@
 import secrets
 import json
 from web3 import Web3
+from eth_account import Account
+
+# constants
+HEX_DIGITS = 32
+NUM_USERS = 16
+
+
+# creates dummy users and adds their accounts to the blockchain
+def populateUsers(start, num):
+    # create some hex values to use to generate account keys/addresses
+    ex_entropy = [str(secrets.token_hex(HEX_DIGITS)) for
+                  i in range(start, num)]
+
+    # create some identifiers for users' keyfiles
+    usernames = ['user' + str(x) for x in range(start, num)]
+
+    # generate [num] user accounts, encrypt them, then write them to a keyfile
+    # to add them to the blockchain
+    for usr in range(num):
+        usr_acct = Account.create(ex_entropy[usr])
+        encrypted = usr_acct.encrypt(password=str(usernames[usr] + 'pass'))
+        fn = 'Blockchain/keystore/' + usernames[usr] + '-keyfile'
+        with open(fn, 'w') as kf:
+            kf.write(json.dumps(encrypted))
+
 
 # IPC Provider
 gNode = Web3(Web3.IPCProvider('/Users/tkrull/Library/Ethereum/geth.ipc'))
@@ -30,3 +55,6 @@ print(gNode.isConnected())
 
 # get info on latest block
 print(gNode.eth.get_block('latest'))
+
+if (len(gNode.eth.accounts) < NUM_USERS):
+    populateUsers(len(gNode.eth.accounts), NUM_USERS)
