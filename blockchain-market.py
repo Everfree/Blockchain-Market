@@ -24,11 +24,15 @@ from web3 import Web3
 from eth_account import Account
 
 # constants
-HEX_DIGITS = 32
-NUM_USERS = 16
+HEX_DIGITS = 32     # number of digits for random hex nums
+MIN_ACCTS = 16      # minimum number of accounts to have active
 
 
 # creates dummy users and adds their accounts to the blockchain
+# Inputs:
+#   - start: int to start indexing users at
+#   - num: number of accounts to generate
+# Outputs: user keyfiles
 def populateUsers(start, num):
     # create some hex values to use to generate account keys/addresses
     ex_entropy = [str(secrets.token_hex(HEX_DIGITS)) for
@@ -47,14 +51,28 @@ def populateUsers(start, num):
             kf.write(json.dumps(encrypted))
 
 
+# prints info about the current state of the chain
+def printInfo():
+    # output if connected to the geth node
+    print("Node Connected: " + str(gNode.isConnected()) + "\n")
+
+    # print info on latest block
+    print("Details of latest block:")
+    print(json.dumps(json.loads(Web3.toJSON(gNode.eth.get_block('latest'))),
+                     indent=4, sort_keys=True) + '\n')
+
+    # print user addresses
+    print("Current Account Addresses:")
+    for acct in gNode.eth.accounts:
+        print(acct)
+    # print a blank line
+    print()
+
+
 # IPC Provider
 gNode = Web3(Web3.IPCProvider('/Users/tkrull/Library/Ethereum/geth.ipc'))
 
-# check connection
-print(gNode.isConnected())
+if (len(gNode.eth.accounts) < MIN_ACCTS):
+    populateUsers(len(gNode.eth.accounts), MIN_ACCTS)
 
-# get info on latest block
-print(gNode.eth.get_block('latest'))
-
-if (len(gNode.eth.accounts) < NUM_USERS):
-    populateUsers(len(gNode.eth.accounts), NUM_USERS)
+printInfo()

@@ -2,3 +2,4 @@ Blockchain-py-evm
 Blockchain-geth
 Blockchain
 truffle
+*.log
