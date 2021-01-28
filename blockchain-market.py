@@ -206,7 +206,7 @@ def print_info():
 
 
 # IPC Provider
-gNode = Web3(Web3.IPCProvider('/Users/tkrull/Library/Ethereum/geth.ipc'))
+gNode = Web3(Web3.IPCProvider('~/Library/Ethereum/geth.ipc'))
 
 if (len(gNode.eth.accounts) < MIN_ACCTS):
     populate_users(len(gNode.eth.accounts), MIN_ACCTS)
