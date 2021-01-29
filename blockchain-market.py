@@ -28,30 +28,121 @@ from solc import compile_standard
 # constants
 HEX_DIGITS = 32     # number of digits for random hex nums
 MIN_ACCTS = 16      # minimum number of accounts to have active
-START_BAL = 100      # amount to start accounts off with
+START_BAL = 100     # amount to start accounts off with
+
+# global variables
+commands = {}       # list of functions for commands
 
 
-# creates dummy users and adds their accounts to the blockchain
+# function to populate commands through use of decorator @command
+# this will be used to access command functions
+def command(c):
+    commands[c.__name__] = c
+
+
+# function for purchase commands.
 # Inputs:
-#   - start: int to start indexing users at
-#   - num: number of accounts to generate
-# Outputs: user keyfiles
-def populate_users(start, num):
-    # create some hex values to use to generate account keys/addresses
-    ex_entropy = [str(secrets.token_hex(HEX_DIGITS)) for
-                  i in range(start, num)]
+#   - the sender account
+#   - the amount being sent to purchase
+# Returns: The transaction receipt address
+@command
+def purchase(*args):
+    print('Executing purchase transaction\n')
+    set_default_account(int(args[0]))
+    return sale_listing.functions.purchase.value(int(args[1]))().transact()
 
-    # create some identifiers for users' keyfiles
-    usernames = ['user' + str(x) for x in range(start, num)]
 
-    # generate [num] user accounts, encrypt them, then write them to a keyfile
-    # to add them to the blockchain
-    for usr in range(num):
-        usr_acct = Account.create(ex_entropy[usr])
-        encrypted = usr_acct.encrypt(password='password')
-        fn = 'Blockchain/keystore/' + usernames[usr] + '-keyfile'
-        with open(fn, 'w') as kf:
-            kf.write(json.dumps(encrypted))
+# function for get price commands.
+# Inputs:
+#   - the sender account
+# Returns: The transaction receipt address
+@command
+def get_price(*args):
+    print('Executing getPrice transaction\n')
+    set_default_account(int(args[0]))
+    return sale_listing.functions.getPrice().transact()
+
+
+# function for describe commands.
+# Inputs:
+#   - the sender account
+# Returns: The transaction receipt address
+@command
+def describe(*args):
+    print('Executing describe transaction\n')
+    set_default_account(int(args[0]))
+    return sale_listing.functions.describe().transact()
+
+
+# function for times bought commands.
+# Inputs:
+#   - the sender account
+# Returns: The transaction receipt address
+@command
+def times_bought(*args):
+    print('Executing timesBought transaction\n')
+    set_default_account(int(args[0]))
+    return sale_listing.functions.timesBought().transact()
+
+
+# function for get balance commands.
+# Inputs:
+#   - the sender account
+# Returns: The transaction receipt address
+@command
+def get_balance(*args):
+    print('Executing getBalance transaction\n')
+    set_default_account(int(args[0]))
+    return sale_listing.functions.getBalance().transact()
+
+
+# function for transfer ETH commands.
+# Inputs:
+#   - the sender account
+#   - the amount being requested
+# Returns: The transaction receipt address
+@command
+def transfer_eth(*args):
+    print('Executing transferETH transaction\n')
+    set_default_account(int(args[0]))
+    return sale_listing.functions.transferETH(int(args[1])).transact()
+
+
+# function for update price commands.
+# Inputs:
+#   - the sender account
+#   - the new price
+# Returns: The transaction receipt address
+@command
+def update_price(*args):
+    print('Executing updatePrice transaction\n')
+    set_default_account(int(args[0]))
+    return sale_listing.functions.updatePrice(int(args[1])).transact()
+
+
+# function for take off market commands.
+# Inputs:
+#   - the sender account
+# Returns: The transaction receipt address
+@command
+def take_off_market(*args):
+    print('Executing takeOffMarket transaction\n')
+    set_default_account(int(args[0]))
+    return sale_listing.functions.takeOffMarket().transact()
+
+
+# function for take send ETH commands.
+# Inputs:
+#   - the sender account
+#   - the reciever account
+#   - the amount being sent
+# Returns: The transaction receipt address
+@command
+def send(*args):
+    print('Executing send transaction\n')
+    return gNode.eth.sendTransaction({'to': int(args[1]),
+                                      'from': int(args[0]),
+                                      'value': int(args[2])})
 
 
 # sets the default account to use for chain transactions
@@ -96,57 +187,27 @@ def simulate():
             command = command.strip().split(sep=',')
             print('current command line:')
             print(command)
+
+            th = commands[command[0]](command[1:])
+            tr = gNode.eth.waitForTransactionReceipt(th)
+            print(gNode.eth.getTransactionReceipt(tr))
+
             if command[0] == 'purchase':
-                print('Executing purchase transaction\n')
-                set_default_account(int(command[2]))
-                th = sale_listing.functions.purchase.value(
-                    int(command[1]))().transact()
-                tr = gNode.eth.waitForTransactionReceipt(th)
-                print(gNode.eth.getTransactionReceipt(tr))
+                pass
             elif command[0] == 'getPrice':
-                print('Executing getPrice transaction\n')
-                set_default_account(int(command[1]))
-                th = sale_listing.functions.getPrice().transact()
-                tr = gNode.eth.waitForTransactionReceipt(th)
-                print(gNode.eth.getTransactionReceipt(tr))
+                pass
             elif command[0] == 'describe':
-                print('Executing describe transaction\n')
-                set_default_account(int(command[1]))
-                th = sale_listing.functions.describe().transact()
-                tr = gNode.eth.waitForTransactionReceipt(th)
-                print(gNode.eth.getTransactionReceipt(tr))
+                pass
             elif command[0] == 'timesBought':
-                print('Executing timesBought transaction\n')
-                set_default_account(int(command[1]))
-                th = sale_listing.functions.timesBought().transact()
-                tr = gNode.eth.waitForTransactionReceipt(th)
-                print(gNode.eth.getTransactionReceipt(tr))
+                pass
             elif command[0] == 'getBalance':
-                print('Executing getBalance transaction\n')
-                set_default_account(int(command[1]))
-                th = sale_listing.functions.getBalance().transact()
-                tr = gNode.eth.waitForTransactionReceipt(th)
-                print(gNode.eth.getTransactionReceipt(tr))
+                pass
             elif command[0] == 'transferETH':
-                print('Executing transferETH transaction\n')
-                set_default_account(int(command[2]))
-                th = sale_listing.functions.transferETH(
-                    int(command[1])).transact()
-                tr = gNode.eth.waitForTransactionReceipt(th)
-                print(gNode.eth.getTransactionReceipt(tr))
+                pass
             elif command[0] == 'updatePrice':
-                print('Executing updatePrice transaction\n')
-                set_default_account(int(command[2]))
-                th = sale_listing.functions.updatePrice(
-                    int(command[1])).transact()
-                tr = gNode.eth.waitForTransactionReceipt(th)
-                print(gNode.eth.getTransactionReceipt(tr))
+                pass
             elif command[0] == 'takeOffMarket':
-                print('Executing takeOffMarket transaction\n')
-                set_default_account(int(command[1]))
-                th = sale_listing.functions.takeOffMarket().transact()
-                tr = gNode.eth.waitForTransactionReceipt(th)
-                print(gNode.eth.getTransactionReceipt(tr))
+                pass
             elif command[0] == 'send':
                 print('Executing send transaction\n')
                 th = gNode.eth.sendTransaction({'to': int(command[2]),
@@ -157,6 +218,29 @@ def simulate():
 
     # stop miner
     gNode.geth.miner.stop()
+
+
+# creates dummy users and adds their accounts to the blockchain
+# Inputs:
+#   - start: int to start indexing users at
+#   - num: number of accounts to generate
+# Outputs: user keyfiles
+def populate_users(start, num):
+    # create some hex values to use to generate account keys/addresses
+    ex_entropy = [str(secrets.token_hex(HEX_DIGITS)) for
+                  i in range(start, num)]
+
+    # create some identifiers for users' keyfiles
+    usernames = ['user' + str(x) for x in range(start, num)]
+
+    # generate [num] user accounts, encrypt them, then write them to a keyfile
+    # to add them to the blockchain
+    for usr in range(num):
+        usr_acct = Account.create(ex_entropy[usr])
+        encrypted = usr_acct.encrypt(password='password')
+        fn = 'Blockchain/keystore/' + usernames[usr] + '-keyfile'
+        with open(fn, 'w') as kf:
+            kf.write(json.dumps(encrypted))
 
 
 # compile the contract defined using Solidity
