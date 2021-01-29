@@ -59,13 +59,13 @@ for i in range(int(sys.argv[1])):
             str(random.randrange(int(sys.argv[2]))) + '\n'
     elif command == 'getBalance':
         output += command + ', ' +\
-            str(0) + '\n'
+            str(random.randrange(int(sys.argv[2]))) + '\n'
     elif command == 'transferETH':
-        output += command + ', ' + str(random.randint(MIN, MAX)) +\
-            ', ' + str(0) + '\n'
+        output += command + ', ' + str(random.randrange(int(sys.argv[2]))) +\
+            ', ' + str(random.randint(MIN, MAX)) + '\n'
     elif command == 'takeOffMarket':
         output += command + ', ' +\
-            str(0) + '\n'
+            str(random.randrange(int(sys.argv[2]))) + '\n'
     elif command == 'send':
         sender = random.randrange(int(sys.argv[2]))
         reciever = random.randrange(int(sys.argv[2]))
