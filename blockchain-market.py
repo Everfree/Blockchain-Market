@@ -192,30 +192,6 @@ def simulate():
             tr = gNode.eth.waitForTransactionReceipt(th)
             print(gNode.eth.getTransactionReceipt(tr))
 
-            if command[0] == 'purchase':
-                pass
-            elif command[0] == 'getPrice':
-                pass
-            elif command[0] == 'describe':
-                pass
-            elif command[0] == 'timesBought':
-                pass
-            elif command[0] == 'getBalance':
-                pass
-            elif command[0] == 'transferETH':
-                pass
-            elif command[0] == 'updatePrice':
-                pass
-            elif command[0] == 'takeOffMarket':
-                pass
-            elif command[0] == 'send':
-                print('Executing send transaction\n')
-                th = gNode.eth.sendTransaction({'to': int(command[2]),
-                                                'from': int(command[1]),
-                                                'value': int(command[3])})
-                tr = gNode.eth.waitForTransactionReceipt(th)
-                print(json.loads(gNode.eth.getTransactionReceipt(tr)))
-
     # stop miner
     gNode.geth.miner.stop()
 
@@ -258,12 +234,16 @@ def compile_contract(fn):
     comp_sol = compile_standard(code,
                                 allow_paths=getcwd())
 
-    # get the bytecode for the compiled Solidity code
-    bytecode = comp_sol['contracts']['SaleListing.sol']['SaleListing']['evm']['bytecode']['object']
+    # get the SaleListing data
+    sale_listing = comp_sol['contracts']['SaleListing.sol']['SaleListing']
 
     # get the bytecode for the compiled Solidity code
-    abi = json.loads(comp_sol['contracts']['SaleListing.sol']['SaleListing']['metadata'])['output']['abi']
+    bytecode = sale_listing['evm']['bytecode']['object']
 
+    # get the bytecode for the compiled Solidity code
+    abi = json.loads(sale_listing['metadata'])['output']['abi']
+
+    # return the contract data
     return gNode.eth.contract(abi=abi, bytecode=bytecode)
 
 
