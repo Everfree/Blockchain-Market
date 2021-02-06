@@ -31,7 +31,9 @@ MIN_ACCTS = 16      # minimum number of accounts to have active
 START_BAL = 100     # amount to start accounts off with
 
 # global variables
-commands = {}       # list of functions for commands
+commands = {}   # list of functions for commands
+gNode = Web3(Web3.IPCProvider('~/Library/Ethereum/geth.ipc'))  # IPC Provider
+sale_listing = None  # eventual holder for contract
 
 
 # function to populate commands through use of decorator @command
@@ -156,6 +158,7 @@ def set_default_account(acct_index):
 def simulate():
     print('Entering simulate()\n')
 
+    # start the miner with 4 threads
     gNode.geth.miner.start(4)
 
     seed_accounts = False
@@ -269,39 +272,41 @@ def print_info():
     print()
 
 
-# IPC Provider
-gNode = Web3(Web3.IPCProvider('~/Library/Ethereum/geth.ipc'))
+def main(*args, **kwargs):
+    if (len(gNode.eth.accounts) < MIN_ACCTS):
+        populate_users(len(gNode.eth.accounts), MIN_ACCTS)
 
-if (len(gNode.eth.accounts) < MIN_ACCTS):
-    populate_users(len(gNode.eth.accounts), MIN_ACCTS)
+    # set the first account as the default account
+    set_default_account(0)
 
-# set the first account as the default account
-set_default_account(0)
+    for i in range(len(gNode.eth.accounts)):
+        gNode.geth.personal.unlock_account(gNode.eth.accounts[i],
+                                           'password', 0)
 
-for i in range(len(gNode.eth.accounts)):
-    gNode.geth.personal.unlock_account(gNode.eth.accounts[i],
-                                       'password', 0)
+    # get the compiled contract
+    contract = compile_contract('contract.json')
 
-# get the compiled contract
-SaleListing = compile_contract('contract.json')
+    # Submit the transaction that deploys the contract
+    trans_hash = contract.constructor("testaddress", 5,
+                                      "Test Description").transact()
+    # start up miner with 4 threads
+    gNode.geth.miner.start(4)
 
-# Submit the transaction that deploys the contract
-trans_hash = SaleListing.constructor("testaddress", 5,
-                                     "Test Description").transact()
-# start up miner with 4 threads
-gNode.geth.miner.start(4)
+    # Wait for the transaction to be mined, and get the transaction receipt
+    trans_receipt = gNode.eth.waitForTransactionReceipt(trans_hash)
 
-# Wait for the transaction to be mined, and get the transaction receipt
-trans_receipt = gNode.eth.waitForTransactionReceipt(trans_hash)
+    sale_listing = gNode.eth.contract(address=trans_receipt.contractAddress,
+                                      abi=contract.abi)
 
-sale_listing = gNode.eth.contract(address=trans_receipt.contractAddress,
-                                  abi=SaleListing.abi)
+    # call a contract function
+    sale_listing.functions.describe().call()
 
-# call a contract function
-sale_listing.functions.describe().call()
+    # stop the miner
+    gNode.geth.miner.stop()
 
-# stop the miner
-gNode.geth.miner.stop()
+    simulate()
+    print_info()
 
-simulate()
-print_info()
+
+if __name__ == "__main__":
+    main()
