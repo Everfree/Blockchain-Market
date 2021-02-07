@@ -28,7 +28,8 @@ from solc import compile_standard
 # constants
 HEX_DIGITS = 32     # number of digits for random hex nums
 MIN_ACCTS = 16      # minimum number of accounts to have active
-START_BAL = 100     # amount to start accounts off with
+START_BAL = 150     # amount to start accounts off with
+THREADS = 8         # number of threads for miner to use
 
 # global variables
 commands = {}   # list of functions for commands
@@ -154,35 +155,39 @@ def set_default_account(acct_index):
     gNode.eth.defaultAccount = gNode.eth.accounts[acct_index]
 
 
+# distribute ETH among accounts for transactions
+def distribute_eth():
+    # start the miner with preset number of threads
+    gNode.geth.miner.start(THREADS)
+
+    # while the default account's balance is less than START_BAL times
+    # the number of accounts, mine ETH
+    while(Web3.fromWei(gNode.eth.getBalance(gNode.eth.accounts[0]),
+          'ether') < (len(gNode.eth.accounts) * START_BAL)):
+        # do nothing until default account has enough to seed others
+        continue
+
+    # distribute ETH to other accounts
+    for i in range(1, len(gNode.eth.accounts)):
+        # initiaite send transaction
+        th = gNode.eth.sendTransaction({'to': gNode.eth.accounts[i],
+                                        'value': START_BAL})
+        # wait for the transaction to complete
+        gNode.eth.waitForTransactionReceipt(th)
+
+    # stop the miner
+    gNode.geth.miner.stop()
+
+
 # simulates activity on the blockchain
 def simulate():
     print('Entering simulate()\n')
 
-    # start the miner with 4 threads
-    gNode.geth.miner.start(4)
+    # distribute at least the minimum START_BAL to each account
+    distribute_eth()
 
-    seed_accounts = False
-    for account in gNode.eth.accounts:
-        if Web3.fromWei(gNode.eth.getBalance(account), 'ether') < START_BAL:
-            seed_accounts = True
-            break
-    if seed_accounts:
-        while(Web3.fromWei(gNode.eth.getBalance(gNode.eth.accounts[0]),
-              'ether') < (len(gNode.eth.accounts) * START_BAL)):
-            # do nothing until default account has enough to seed others
-            continue
-
-    gNode.geth.miner.stop()
-
-    # gNode.geth.personal.unlock_account(gNode.eth.accounts[0], 'user0pass', 0)
-
-    # seed other accounts
-    for i in range(1, len(gNode.eth.accounts)):
-        gNode.eth.sendTransaction({'to': gNode.eth.accounts[i],
-                                  'value': START_BAL})
-
-    # start miner
-    gNode.geth.miner.start(4)
+    # start miner with preset number of threads
+    gNode.geth.miner.start(THREADS)
 
     # read in commands and execute them
     with open('commands.txt', 'r') as fin:
@@ -289,8 +294,8 @@ def main(*args, **kwargs):
     # Submit the transaction that deploys the contract
     trans_hash = contract.constructor("testaddress", 5,
                                       "Test Description").transact()
-    # start up miner with 4 threads
-    gNode.geth.miner.start(4)
+    # start up miner with preset number of threads
+    gNode.geth.miner.start(THREADS)
 
     # Wait for the transaction to be mined, and get the transaction receipt
     trans_receipt = gNode.eth.waitForTransactionReceipt(trans_hash)
